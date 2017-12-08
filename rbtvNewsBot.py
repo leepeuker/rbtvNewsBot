@@ -8,6 +8,7 @@ FORUM_SOURCE_URL = 'https://www.leepeuker.de/api'
 SUBREDDIT = 'nativesys'
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 PROGRAM_START_TIME = datetime.datetime.today()
+print(PROGRAM_START_TIME)
 
 
 # Reddit authentication
@@ -42,18 +43,17 @@ def get_new_latest_topic_time(new_topics, latest_topic_time):
 
 # Get all topics, which were created before the latest_topic_time
 def get_new_topics(news_json, latest_topic_time):
-    i = 0
     new_topics = []
     for topic in news_json['topic_list']['topics']:
-        topic['created_at'] = datetime.datetime.strptime(topic['created_at'],TIME_FORMAT)
+        topic['created_at'] = datetime.datetime.strptime(topic['created_at'], TIME_FORMAT)
         if topic['pinned']:
             if topic['created_at'] > latest_topic_time:
-                new_topics.append(topic);
+                new_topics.append(topic)
         elif topic['created_at'] > latest_topic_time:
-            new_topics.append(topic);
+            new_topics.append(topic)
         else:
             break
-    return new_topics;
+    return new_topics
 
 
 # Main function
@@ -66,13 +66,12 @@ def main():
         if new_topics:
             for topic in new_topics:
                 run_bot(reddit, topic)
-                print(topic['title'])
             latest_topic_time = get_new_latest_topic_time(new_topics, latest_topic_time)
         else:
-            print('no new topic');
+            print('no new topic')
         new_topics = []
         news_json = get_news_json()
-        time.sleep(1)
+        time.sleep(10)
     exit(0)
 
 
