@@ -1,20 +1,22 @@
-import requests
 import datetime
-import time
 import json
+import logging
 import praw
+import requests
+import time
 
-FORUM_SOURCE_URL = 'https://www.leepeuker.de/api'
-SUBREDDIT = 'nativesys'
+FORUM_SOURCE_URL = 'https://forum.rocketbeans.tv/c/news.json'
+SUBREDDIT = 'rocketbeans'
+TIME_SLEEP = 2
+LOG_NAME = 'rbtvNewsBot.log'
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 PROGRAM_START_TIME = datetime.datetime.today()
-print(PROGRAM_START_TIME)
 
 
 # Reddit authentication
 def authenticate():
     reddit = praw.Reddit('sysLee', user_agent='rbtvNewsBot (by /u/sysLee)')
-    print('Authenticated as {}...'.format(reddit.user.me()))
+    logging.info('{}: Authenticated as {}'.format(datetime.datetime.today(), reddit.user.me()))
     return reddit
 
 
@@ -24,11 +26,15 @@ def get_news_json():
     request = requests.get(FORUM_SOURCE_URL)
     # Check http response status code (200 = ok)
     if not request.status_code == 200:
-        print('Error: HTTP Status Code: {}'.format(request.status_code))
+        logging.error('{}: get_news_json() - HTTP request error ("{}")'.format(datetime.datetime.today(), request.status_code))
         exit(1)
     # Check application data type (we want only json)
     if 'application/json' not in request.headers['content-type']:
-        print('Error: Response wrong application type: {}'.format(request.headers['content-type']))
+        logging.error('{}: get_news_json() - Wrong HTTP application type ("{}")'.format(datetime.datetime.today(), request.headers['content-type']))
+        exit(1)
+    # Check if response is not empty
+    if not request.text:
+        logging.error('{}: get_news_json() - HTTP response empty'.format(datetime.datetime.today()))
         exit(1)
     return json.loads(request.text)
 
@@ -58,20 +64,23 @@ def get_new_topics(news_json, latest_topic_time):
 
 # Main function
 def main():
+    logging.basicConfig(filename=LOG_NAME, level=logging.INFO)
+    logging.info('{}: Started rbtvNewsBot'.format(PROGRAM_START_TIME))
+
     reddit = authenticate()
     news_json = get_news_json()
     latest_topic_time = PROGRAM_START_TIME
+
     while 1:
         new_topics = get_new_topics(news_json, latest_topic_time)
         if new_topics:
+            logging.info('{}: Found {} new topic/s'.format(datetime.datetime.today(), len(new_topics)))
             for topic in new_topics:
                 run_bot(reddit, topic)
             latest_topic_time = get_new_latest_topic_time(new_topics, latest_topic_time)
-        else:
-            print('no new topic')
         new_topics = []
         news_json = get_news_json()
-        time.sleep(10)
+        time.sleep(TIME_SLEEP)
     exit(0)
 
 
@@ -79,6 +88,7 @@ def main():
 def run_bot(reddit, topic):
     subreddit = reddit.subreddit(SUBREDDIT)
     subreddit.submit(topic['title'], url='https://forum.rocketbeans.tv/t/' + topic['slug'])
+    logging.info('{}: New topic/s successfully posted to reddit'.format(datetime.datetime.today()))
     return
 
 
