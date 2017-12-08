@@ -21,7 +21,7 @@ PROGRAM_START_TIME = datetime.datetime.today()
 
 # Reddit authentication
 def authenticate():
-    reddit = praw.Reddit('sysLee', user_agent='rbtvNewsBot (by /u/sysLee)')
+    reddit = praw.Reddit('rbtvNewsBot', user_agent='rbtvNewsBot (by /u/sysLee)')
     logging.info('{}: Authenticated as {}'.format(datetime.datetime.today(), reddit.user.me()))
     return reddit
 
