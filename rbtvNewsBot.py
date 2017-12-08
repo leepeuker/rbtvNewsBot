@@ -10,7 +10,7 @@ FORUM_SOURCE_URL = 'https://forum.rocketbeans.tv/c/news.json'
 # Posting new topics to this subreddit
 SUBREDDIT = 'rocketbeans'
 # Delay in seconds between checking for news
-TIME_SLEEP = 600
+TIME_SLEEP = 300
 # Name of info/error log
 LOG_NAME = 'rbtvNewsBot.log'
 # RBTV json time format
@@ -33,15 +33,15 @@ def get_news_json():
     # Check http response status code (200 = ok)
     if not request.status_code == 200:
         logging.error('{}: get_news_json() - HTTP request error ("{}")'.format(datetime.datetime.today(), request.status_code))
-        exit(1)
+        return
     # Check application data type (we want only json)
     if 'application/json' not in request.headers['content-type']:
         logging.error('{}: get_news_json() - Wrong HTTP application type ("{}")'.format(datetime.datetime.today(), request.headers['content-type']))
-        exit(1)
+        return
     # Check if response is not empty
     if not request.text:
         logging.error('{}: get_news_json() - HTTP response empty'.format(datetime.datetime.today()))
-        exit(1)
+        return
     return json.loads(request.text)
 
 
@@ -56,15 +56,16 @@ def get_new_latest_topic_time(new_topics, latest_topic_time):
 # Get all topics, which were created before the latest_topic_time
 def get_new_topics(news_json, latest_topic_time):
     new_topics = []
-    for topic in news_json['topic_list']['topics']:
-        topic['created_at'] = datetime.datetime.strptime(topic['created_at'], TIME_FORMAT)
-        if topic['pinned']:
-            if topic['created_at'] > latest_topic_time:
+    if news_json:
+        for topic in news_json['topic_list']['topics']:
+            topic['created_at'] = datetime.datetime.strptime(topic['created_at'], TIME_FORMAT)
+            if topic['pinned']:
+                if topic['created_at'] > latest_topic_time:
+                    new_topics.append(topic)
+            elif topic['created_at'] > latest_topic_time:
                 new_topics.append(topic)
-        elif topic['created_at'] > latest_topic_time:
-            new_topics.append(topic)
-        else:
-            break
+            else:
+                break
     return new_topics
 
 
