@@ -5,11 +5,17 @@ import praw
 import requests
 import time
 
+# URL to request news json
 FORUM_SOURCE_URL = 'https://forum.rocketbeans.tv/c/news.json'
+# Posting new topics to this subreddit
 SUBREDDIT = 'rocketbeans'
-TIME_SLEEP = 2
+# Delay in seconds between checking for news
+TIME_SLEEP = 600
+# Name of info/error log
 LOG_NAME = 'rbtvNewsBot.log'
+# RBTV json time format
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+# Set start time of program
 PROGRAM_START_TIME = datetime.datetime.today()
 
 
@@ -39,7 +45,7 @@ def get_news_json():
     return json.loads(request.text)
 
 
-# Get the time of the latest new topic from a topic list
+# Get the time of the latest new topic from topic list
 def get_new_latest_topic_time(new_topics, latest_topic_time):
     for topic in new_topics:
         if topic['created_at'] > latest_topic_time:
