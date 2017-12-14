@@ -80,8 +80,9 @@ def main():
 
     while 1:
         new_topics = get_new_topics(news_json, latest_topic_time)
+        logging.info('{}: Found {} new topic/s'.format(datetime.datetime.today(), len(new_topics)))
         if new_topics:
-            logging.info('{}: Found {} new topic/s'.format(datetime.datetime.today(), len(new_topics)))
+            # logging.info('{}: Found {} new topic/s'.format(datetime.datetime.today(), len(new_topics)))
             for topic in new_topics:
                 run_bot(reddit, topic)
             latest_topic_time = get_new_latest_topic_time(new_topics, latest_topic_time)
@@ -94,7 +95,7 @@ def main():
 # Post the news to subreddit
 def run_bot(reddit, topic):
     subreddit = reddit.subreddit(SUBREDDIT)
-    subreddit.submit(topic['title'], url='https://forum.rocketbeans.tv/t/' + topic['slug'])
+    subreddit.submit(topic['title'], url='https://forum.rocketbeans.tv/t/' + topic['slug'] + '/' + topic['id'])
     logging.info('{}: New topic/s successfully posted to reddit'.format(datetime.datetime.today()))
     return
 
